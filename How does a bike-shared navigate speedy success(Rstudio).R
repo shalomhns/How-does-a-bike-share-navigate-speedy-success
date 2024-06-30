@@ -51,11 +51,23 @@ csv_merge$day_of_week <- weekdays(csv_merge$date)
 
 # Extracting the Hour, Minutes and Seconds from the Date for the start at time
 csv_merge$started_at_time <- format(as.POSIXct(csv_merge$started_at),
-                                    format = "%H:%M:%S")
+                                    format = "%Y-%m-%d %H:%M:%S")
 
 # Extracting the Hour, Minutes and Seconds from the Date for the ended at time
 csv_merge$ended_at_time <- format(as.POSIXct(csv_merge$ended_at),
-                                  format = "%H:%M:%S")
+                                  format = "%Y-%m-%d %H:%M:%S")
+# Calculate the time difference
+csv_merge$ride_duration <- difftime(csv_merge$ended_at_time, csv_merge$started_at_time, units = "mins")
+
+#Checking Minimum and Maximum distance covered 
+min(csv_merge$ride_duration)
+
+max(csv_merge$ride_duration)
+
+#Filter the trip duration with value greater than greater than 2min and less or equal to 24hr
+csv_merge <-csv_merge %>%
+  filter(ride_duration >=2, ride_duration <= (24*60))
+
 
 #count NA values in each column
 sapply(csv_merge, function(x) sum(is.na(x)))
@@ -64,7 +76,7 @@ sapply(csv_merge, function(x) sum(is.na(x)))
 csv_merge <- drop_na(csv_merge)
 
 #Removing unneccessary column from the data frame
-cyclick_df <- subset(csv_merge, select = -c(started_at, ended_at, start_station_id, end_station_id))
+cyclick_df <- subset(csv_merge, select = -c(started_at, ended_at, started_at_time, ended_at_time, start_station_id, end_station_id))
 
 # Counting the number of unique value in member casual column
 cyclick_df %>% count(member_casual)
@@ -75,34 +87,17 @@ cyclick_df %>% count(rideable_type)
 # Counting the number of unique value in start station name and end at station name column
 cyclick_df %>% count(start_station_name, sort = TRUE)
 
-#Calculating the duration of the ride
-
-csv_merge$started_at_time1 <- format(as.POSIXct(csv_merge$started_at),
-                                    format = "%Y-%m-%d %H:%M:%S")
-
-# Extracting the Hour, Minutes and Seconds from the Date for the ended at time
-csv_merge$ended_at_time1 <- format(as.POSIXct(csv_merge$ended_at),
-                                  format = "%Y-%m-%d %H:%M:%S")
-# Calculate the time difference
-csv_merge$ride_duration <- difftime(csv_merge$ended_at_time1, csv_merge$started_at_time1, units = "mins")
-
-#Checking Minimum and Maximum distance covered 
-
-min(csv_merge$ride_duration)
-
-max(csv_merge$ride_duration)
-
-#Filter the trip duration with value greater than greater than 2min and less or equal to 24hr
-
-csv_merge <-csv_merge %>%
-  filter(ride_duration >=2, ride_duration <= (24*60))
-
 #Checking the minimum and maximum distance covered
 
-min(csv_merge$ride_duration)
+min(cyclick_df$ride_duration)
 
-max(csv_merge$ride_duration)
+max(cyclick_df$ride_duration)
 
+# Saving the clean data into file for further analysis.
+write.csv(cyclick_df, file = "C:/Users/Ejiro/Documents/cyclick_df.csv", row.names = FALSE)
 
+cyclick_df1 <- cyclick_df
 
-  
+#Rounding up the ride duration into two decimal places
+cyclick_df1$ride_duration  <- round(cyclick_df1$ride_duration, digits = 2)
+
