@@ -101,3 +101,48 @@ cyclick_df1 <- cyclick_df
 #Rounding up the ride duration into two decimal places
 cyclick_df1$ride_duration  <- round(cyclick_df1$ride_duration, digits = 2)
 
+#Removing the lat and lon column
+
+#start_lat, start_lng, end_lat, end_lng
+cyclick_df2 <- cyclick_df %>%
+  select(-c(start_lat, start_lng, end_lat, end_lng))
+# Analysis
+#Fiding the summery statistics of the data
+summary(cyclick_df2)
+
+#sumary statistics of the ride duration
+summary(cyclick_df2$ride_duration)
+
+#Converting the ride duration to numeric for easy analysis
+
+cyclick_df2$ride_duration <- as.numeric(as.character(cyclick_df2$ride_duration))
+
+#sumary statistics of the ride duration
+summary(cyclick_df2$ride_duration)
+
+#Ordering the dataframe based on the days of the week
+cyclick_df2$day_of_week <- ordered(cyclick_df2$day_of_week, levels = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
+
+#Comparing the number of ride per week and asigning it to weekly ride
+weekly_ride=cyclick_df2 %>%
+  group_by(member_casual, day_of_week) %>%
+  summarise(number_of_ride = n(), .groups = 'drop') %>%
+  arrange(day_of_week)
+
+#Checking the first six role for the weekly ride
+head(weekly_ride)
+
+#checking the months columns
+cyclick_df2 %>% count(month)
+
+#Ordering the dataframe based on the months
+cyclick_df2$month <- ordered(cyclick_df2$month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'))
+
+#Comparing the number of ride per week and asigning it to weekly ride
+monthly_ride=cyclick_df2 %>%
+  group_by(member_casual, month) %>%
+  summarise(number_of_ride = n(), .groups = 'drop') %>%
+  arrange(month)
+
+#Checking the first six role for the weekly ride
+head(monthly_ride)
