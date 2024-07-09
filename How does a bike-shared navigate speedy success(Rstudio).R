@@ -1,9 +1,12 @@
 install.packages('tidyverse')
+install.packages('sf')
 library(tidyverse)
 library(dplyr)
 library(readr)
 library(lubridate)
 library(ggplot2)
+library(mapview)
+library(sf)
 
 # Combining the 12 csv file into a sigle dataframe for analysis #
 
@@ -78,6 +81,9 @@ csv_merge <- drop_na(csv_merge)
 #Removing unneccessary column from the data frame
 cyclick_df <- subset(csv_merge, select = -c(started_at, ended_at, started_at_time, ended_at_time, start_station_id, end_station_id))
 
+#Note Sam Read the csv file
+cyclick_df <- read.csv("C:/Users/Ejiro/Documents/cyclick_df.csv")
+
 # Counting the number of unique value in member casual column
 cyclick_df %>% count(member_casual)
 
@@ -135,6 +141,11 @@ head(weekly_ride)
 #checking the months columns
 cyclick_df2 %>% count(month)
 
+# Identifying the top pickup station
+                              
+#Identifying the top destination station.
+
+
 #Ordering the dataframe based on the months
 cyclick_df2$month <- ordered(cyclick_df2$month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'))
 
@@ -144,5 +155,80 @@ monthly_ride=cyclick_df2 %>%
   summarise(number_of_ride = n(), .groups = 'drop') %>%
   arrange(month)
 
-#Checking the first six role for the weekly ride
+#Checking the first six row for the weekly ride
 head(monthly_ride)
+
+#Ordering the dataframe based on the rideable type
+cyclick_df2$rideable_type <- ordered(cyclick_df2$rideable_type, levels = c('classic_bike', 'docked_bike', 'electric_bike'))
+
+# Checking the first six row of the dataframe
+head(cyclick_df2)
+
+#Comparing the number of ride per week and assigning it to ride type
+ride_type=cyclick_df2 %>%
+  group_by(member_casual, rideable_type) %>%
+  summarise(number_of_ride = n(), .groups = 'drop') %>%
+  arrange(rideable_type)
+
+#Ride able type
+ride_type %>% 
+  ggplot(aes(x = rideable_type, y = number_of_ride, fill = member_casual)) + 
+  geom_bar(position = "dodge", stat = "identity") + 
+  scale_fill_manual(values=c("#33658A", "#2F4858"))
+
+# Monthly ride 
+monthly_ride %>%
+  ggplot(aes(x = month, y = number_of_ride, fill = member_casual)) + 
+  geom_bar(position = "dodge", stat = "identity") + 
+  scale_fill_manual(values=c("#33658A", "#2F4858"))+ theme(axis.text.x = element_text(angle = 90))
+
+# Weekly ride
+weekly_ride %>% 
+  ggplot(aes(x = day_of_week, y = number_of_ride, fill = member_casual)) + 
+  geom_bar(position = "dodge", stat = "identity") +
+  scale_fill_manual(values=c( "#33658A", "#2F4858"))
+
+
+
+cyclick_df %>% filter(member_casual=="member") %>% 
+  group_by(start_station_name) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n)) %>% 
+  slice_max(n,n=5) %>% 
+  ggplot(mapping = aes(x=start_station_name, y = n))+geom_col(fill = "#686868",width = 0.5)+ labs(title = "Cyclist members most used Start Station",x="Start station",y="Count") + theme(axis.text.x = element_text(angle = 90))
+
+
+cyclick_df %>% filter(member_casual=="casual") %>% 
+  group_by(start_station_name) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n)) %>% 
+  slice_max(n,n=5) %>% 
+  ggplot(mapping = aes(x=start_station_name, y = n))+geom_col(fill = "#686868",width = 0.5)+ labs(title = "Cyclist casual members most used Start Station",x="Start station",y="Count") + theme(axis.text.x = element_text(angle = 90))
+
+
+
+cyclick_df %>% filter(member_casual=="member" | member_casual=="casual") %>% 
+  group_by(end_station_name) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n)) %>% 
+  slice_max(n,n=5) %>% 
+  ggplot(mapping = aes(x=end_station_name, y = n))+geom_col(fill = "#686868",width = 0.5)+ labs(title = "Cyclist members most used end Station",x="Start station",y="Count") + theme(axis.text.x = element_text(angle = 90))
+
+
+cyclick_df %>% filter(member_casual=="casual") %>% 
+  group_by(end_station_name) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n)) %>% 
+  slice_max(n,n=5) %>% 
+  ggplot(mapping = aes(x=end_station_name, y = n))+geom_col(fill = "#686868",width = 0.5)+ labs(title = "Cyclist casual members most used end Station",x="Start station",y="Count") + theme(axis.text.x = element_text(angle = 90))
+
+
+# Create a data frame with the point data 
+cyclick_sf <-  cyclick_df %>%
+  st_as_sf(coords = c('start_lng', 'start_lat')) %>%
+  st_set_crs(4326) # using 4326 for lat/lon decimal
+
+# ggplot2 of the data
+ggplot() +
+  geom_sf(data = cyclick_sf, aes(color = start_station_name, shape = rideable_type), size = 3)
+

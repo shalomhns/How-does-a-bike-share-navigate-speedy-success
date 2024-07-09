@@ -1,4 +1,5 @@
 ## README
+
 ---
 title: "README.md"
 author: "Sam"
@@ -6,7 +7,16 @@ date: "2024-05-22"
 output: html_document
 ---
 
+## Installation of the R package library for the Analysis
+
 ```{r setup, include=FALSE}
+install.packages("tidyverse")
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
