@@ -1,5 +1,8 @@
 install.packages('tidyverse')
 install.packages('sf')
+install.packages("ggmap")
+install.packages("maps")
+install.packages("readr")
 library(tidyverse)
 library(dplyr)
 library(readr)
@@ -7,9 +10,12 @@ library(lubridate)
 library(ggplot2)
 library(mapview)
 library(sf)
+library(ggmap)
+library(maps)
+library(readr)
+
 
 # Combining the 12 csv file into a sigle dataframe for analysis #
-
 setwd("C:/Users/Ejiro/Downloads/202305-202404-divvy-tripdata")
 
 csv_merge <- list.files(
@@ -222,13 +228,27 @@ cyclick_df %>% filter(member_casual=="casual") %>%
   slice_max(n,n=5) %>% 
   ggplot(mapping = aes(x=end_station_name, y = n))+geom_col(fill = "#686868",width = 0.5)+ labs(title = "Cyclist casual members most used end Station",x="Start station",y="Count") + theme(axis.text.x = element_text(angle = 90))
 
+#Map
+cyclick_df3 <- select(cyclick_df1, start_station_name, start_lat, start_lng)
 
-# Create a data frame with the point data 
-cyclick_sf <-  cyclick_df %>%
-  st_as_sf(coords = c('start_lng', 'start_lat')) %>%
-  st_set_crs(4326) # using 4326 for lat/lon decimal
 
-# ggplot2 of the data
-ggplot() +
-  geom_sf(data = cyclick_sf, aes(color = start_station_name, shape = rideable_type), size = 3)
+# If your data contains latitude and longitude
+ggplot(cyclick_df3) +
+  borders("world", colour = "gray85", fill = "gray80") +
+  geom_point(aes(x = start_lng, y = start_lat), color = "blue", size = 2) +
+  theme_minimal() +
+  labs(title = "Map Plot", x = "Longitude", y = "Latitude")
 
+#New ##
+
+# Define the bounding box for Chicago
+chicago_bbox <- c(left = -87.94011, bottom = 41.64454, right = -87.52414, top = 42.02304)
+
+# Plot the map with the data points
+ggplot(cyclick_df3) +
+  borders("state", regions = "illinois", fill = "gray80", colour = "gray85") +
+  coord_sf(xlim = c(chicago_bbox["left"], chicago_bbox["right"]), 
+           ylim = c(chicago_bbox["bottom"], chicago_bbox["top"]), expand = FALSE) +
+  geom_point(aes(x = start_lng, y = start_lat), color = "blue", size = 2) +
+  theme_minimal() +
+  labs(title = "Chicago Map Plot", x = "Longitude", y = "Latitude")
