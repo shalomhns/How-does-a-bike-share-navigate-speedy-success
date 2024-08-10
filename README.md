@@ -11,11 +11,21 @@ output: html_document
 
 ```{r setup, include=FALSE}
 install.packages("tidyverse")
+install.packages('sf')
+install.packages("ggmap")
+install.packages("maps")
+install.packages("readr")
 library(tidyverse)
 library(readr)
 library(dplyr)
 library(lubridate)
 library(ggplot2)
+ibrary(mapview)
+library(sf)
+library(ggmap)
+library(maps)
+library(readr)
+mapviewOptions(fgb = FALSE)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
